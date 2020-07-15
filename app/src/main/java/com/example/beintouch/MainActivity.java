@@ -30,6 +30,7 @@ public class MainActivity<email, password> extends AppCompatActivity {
     private Button loginbtn;
     public EditText email,password;
     private FirebaseAuth mAuth;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -68,6 +69,8 @@ public class MainActivity<email, password> extends AppCompatActivity {
                                                 Toast.LENGTH_SHORT).show();
                                         opendashboard();
                                         updateUI(user);
+                                        getDataFromDatabase();
+
                                     } else {
                                         // If sign in fails, display a message to the user.
                                         Log.w(TAG, "signInWithEmail:failure", task.getException());
@@ -95,15 +98,7 @@ public class MainActivity<email, password> extends AppCompatActivity {
         });
     }
 
-
-    @Override
-    public void onStart() {
-        super.onStart();
-        // Check if user is signed in (non-null) and update UI accordingly.
-        FirebaseUser currentUser = mAuth.getCurrentUser();
-        updateUI(currentUser);
-    }
-    private void updateUI(FirebaseUser currentUser) {
+    private void getDataFromDatabase() {
         final String useremail = email.getText().toString();
         final String userpass = password.getText().toString();
         // Dashboard setting
@@ -116,21 +111,31 @@ public class MainActivity<email, password> extends AppCompatActivity {
                 if(snapshot.exists()){
                     email.setError(null);
 
-                    String userpassword = snapshot.child(useremail).child("email").getValue(String.class);
-                    if(userpassword.equals(userpass)){
+                    String userpassworddb = snapshot.child(useremail).child("email").getValue(String.class);
+                    if(userpassworddb.equals(userpass)){
                         email.setError(null);
-                        String firstname = snapshot.child(useremail).child("firstname").getValue(String.class);
-                        String lastname = snapshot.child(useremail).child("lastname").getValue(String.class);
-                        String email = snapshot.child(useremail).child("email").getValue(String.class);
-                        String phone = snapshot.child(useremail).child("phone").getValue(String.class);
-
+                        String fnamedb = snapshot.child(useremail).child("firstname").getValue(String.class);
+                        String lnamedb = snapshot.child(useremail).child("lastname").getValue(String.class);
+                        String emaildb = snapshot.child(useremail).child("email").getValue(String.class);
+                        String phonedb = snapshot.child(useremail).child("phone").getValue(String.class);
+                        if(fnamedb.isEmpty()){
+                            Toast.makeText(MainActivity.this, "fnamedb is empty",
+                                    Toast.LENGTH_SHORT).show();
+                        }
                         Intent intent = new Intent(getApplicationContext(),Dashboard.class);
-                        intent.putExtra("firstname",firstname);
-                        intent.putExtra("lastname",lastname);
-                        intent.putExtra("email",email);
-                        intent.putExtra("phone",phone);
-                        intent.putExtra("password",userpassword);
+                        intent.putExtra("firstname",fnamedb);
+                        intent.putExtra("lastname",lnamedb);
+                        intent.putExtra("email",emaildb);
+                        intent.putExtra("phone",phonedb);
+                        intent.putExtra("password",userpassworddb);
                         startActivity(intent);
+                        Intent i = new Intent(getApplicationContext(),EditProfile.class);
+                        intent.putExtra("firstname",fnamedb);
+                        intent.putExtra("lastname",lnamedb);
+                        intent.putExtra("email",emaildb);
+                        intent.putExtra("phone",phonedb);
+                        intent.putExtra("password",userpassworddb);
+                        startActivity(i);
                     }
                     else {
                         password.setError("Incorrect password");
@@ -149,6 +154,18 @@ public class MainActivity<email, password> extends AppCompatActivity {
                         Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        // Check if user is signed in (non-null) and update UI accordingly.
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+        updateUI(currentUser);
+    }
+    private void updateUI(FirebaseUser currentUser) {
+
     }
 
     public  void opensignupform() {
